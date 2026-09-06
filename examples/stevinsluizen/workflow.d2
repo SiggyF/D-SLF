@@ -1,0 +1,116 @@
+direction: right
+
+title: Stevinsluizen Salt Intrusion Simulation Workflow {
+  near: top-center
+  shape: text
+  style.font-size: 24
+  style.bold: true
+}
+
+classes: {
+  dataset: {
+    shape: cylinder
+    style: {
+      fill: "#e0f2fe"
+      stroke: "#0284c7"
+      stroke-width: 2
+    }
+  }
+  process: {
+    shape: rectangle
+    style: {
+      fill: "#f8fafc"
+      stroke: "#334155"
+      stroke-width: 2
+      border-radius: 8
+    }
+  }
+  phase: {
+    shape: rectangle
+    style: {
+      fill: "#ecfdf5"
+      stroke: "#059669"
+      stroke-width: 2
+      border-radius: 6
+    }
+  }
+  output_node: {
+    shape: page
+    style: {
+      fill: "#fef3c7"
+      stroke: "#d97706"
+      stroke-width: 2
+    }
+  }
+}
+
+inputs: "1. Data Inputs & Geometry" {
+  bivas: "BIVAS Traffic Data\n(Stevin_ZSF_Lockages.xlsm)" {
+    class: dataset
+    tooltip: "Leveling events, ship counts, water levels, durations for 2023, 2050HSK, 2050LVK"
+  }
+  fis: "FIS Schematization\n(Zenodo: 20793663)" {
+    class: dataset
+    tooltip: "Chamber: 120m x 13.5m, Sill: NAP -3.5m, Bottom: NAP -4.0m"
+  }
+  bc: "Boundary Conditions" {
+    class: dataset
+    tooltip: "Lake (IJsselmeer): 1.0 kg/m³ | Sea (Waddenzee): 28.0 kg/m³ | T: 15°C"
+  }
+}
+
+prep: "2. Conversion & Preprocessing" {
+  extract: "Extract Lockage Cycles\n(CSV Generation)" {
+    class: process
+    description: "time, head_sea, routine (1-4), ship_volumes, t_level, t_open"
+  }
+}
+
+simulation: "3. D-SLF Unsteady Simulation Engine (pyzsf)" {
+  style.fill: "#f1f5f9"
+  
+  init: "ZSFUnsteady Initialization\n(Length: 120m, Width: 13.5m, Sill: -3.5m)" {
+    class: process
+  }
+
+  cycle: "Phase-wise Lock Cycle (Routine 1 to 4)" {
+    p1: "Routine 1: Leveling to Lake\nstep_phase_1(t_level, head_sea)" {
+      class: phase
+    }
+    p2: "Routine 2: Doors Open Lake\nstep_phase_2(t_open_lake, ship_vol_lake_to_sea)" {
+      class: phase
+    }
+    p3: "Routine 3: Leveling to Sea\nstep_phase_3(t_level, head_sea)" {
+      class: phase
+    }
+    p4: "Routine 4: Doors Open Sea\nstep_phase_4(t_open_sea, ship_vol_sea_to_lake)" {
+      class: phase
+    }
+
+    p1 -> p2 -> p3 -> p4
+    p4 -> p1: "Next cycle" {
+      style.stroke-dash: 4
+    }
+  }
+
+  init -> cycle.p1
+}
+
+analysis: "4. Aggregation & Scenario Outputs" {
+  timeseries: "Step-by-Step Transports\n(results_stevinsluizen_<scenario>.csv)" {
+    class: output_node
+  }
+  summary: "Annual Scenario Summary\n(summary_scenarios.csv)" {
+    class: output_node
+    description: "Net salt flux (kg/s), total salt load (tonnes), discharges (m³/s)"
+  }
+}
+
+inputs.bivas -> prep.extract: "Sheet parsing"
+inputs.fis -> simulation.init: "Lock dimensions"
+inputs.bc -> simulation.init: "Salinity & Water levels"
+
+prep.extract -> simulation.cycle: "Sequential lockage events"
+
+simulation.cycle -> analysis.timeseries: "Per-phase transports"
+simulation.cycle -> analysis.summary: "Annual integration"

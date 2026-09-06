@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stevinsluizen Salt Intrusion Simulation — D-SLF Case Study</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --accent: #059669;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+    header {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #38bdf8 100%);
+      color: white;
+      padding: 3rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.25rem;
+      font-weight: 700;
+    }
+    header p {
+      margin: 0;
+      font-size: 1.15rem;
+      opacity: 0.95;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h2 {
+      color: var(--primary-dark);
+      border-bottom: 2px solid #e0f2fe;
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+    h3 {
+      color: #334155;
+      margin-top: 1.25rem;
+    }
+    .diagram-container {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .diagram-container svg {
+      max-width: 100%;
+      height: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      color: #0369a1;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container" style="padding-top: 0; padding-bottom: 0;">
+    <h1>Stevinsluizen Salt Intrusion Simulation</h1>
+    <p>Unsteady phase-wise lock exchange modeling with Deltares D-SLF (<code>pyzsf</code>)</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Overview Section -->
+  <section class="card">
+    <h2>1. Overview & Objectives</h2>
+    <p>
+      The <strong>Stevinsluis</strong> at Den Oever is a primary navigation lock in the Afsluitdijk connecting the saline
+      <strong>Waddenzee</strong> to freshwater <strong>Lake IJsselmeer</strong>. During each locking cycle, water and salt
+      are exchanged across the barrier through density currents and vessel displacement.
+    </p>
+    <p>
+      This example uses the Deltares <strong>D-SLF</strong> (Dutch Shipping Lock Fluxes / <code>pyzsf</code>) unsteady solver to evaluate annual salt intrusion fluxes across three BIVAS traffic scenarios:
+      <span class="badge">2023 Reference</span>
+      <span class="badge">2050 HSK (High Climate Scenario)</span>
+      <span class="badge">2050 LVK (Low Climate Scenario)</span>.
+    </p>
+  </section>
+
+  <!-- Workflow Diagram Section -->
+  <section class="card">
+    <h2>2. System Workflow & Architecture</h2>
+    <p>The calculation pipeline connects Dutch Fairway Information System (FIS) geometry, BIVAS shipping traffic cycles, and the D-SLF C-core engine:</p>
+    <div class="diagram-container">
+      <object type="image/svg+xml" data="workflow.svg" style="max-width: 100%;">
+        <img src="workflow.svg" alt="Stevinsluizen Workflow Diagram">
+      </object>
+    </div>
+  </section>
+
+  <!-- Lock Geometry & Boundary Conditions -->
+  <section class="card">
+    <h2>3. Lock Geometry & Boundary Conditions</h2>
+    <div class="grid">
+      <div>
+        <h3>Sluiskolk Stevinsluis (FIS Data)</h3>
+        <ul>
+          <li><strong>Lock Chamber ID</strong>: <code>8988</code> (Lock <code>43389</code>)</li>
+          <li><strong>Source</strong>: <a href="https://zenodo.org/records/20793663" target="_blank">FIS-EURIS Dataset (Zenodo: 20793663)</a></li>
+          <li><strong>Chamber Length</strong>: 120.0 m</li>
+          <li><strong>Chamber Width</strong>: 13.5 m (effective area: 1,620 m²)</li>
+          <li><strong>Gate Width</strong>: 13.0 m</li>
+          <li><strong>Sill Depth</strong>: NAP −3.5 m (sea and lake side)</li>
+          <li><strong>Chamber Floor</strong>: NAP −4.0 m (effective sill height: 0.5 m)</li>
+          <li><strong>Operational Limit</strong>: Locking halts when water level > NAP +1.80 m</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Boundary Conditions</h3>
+        <ul>
+          <li><strong>Lake Side (IJsselmeer)</strong>:
+            <ul>
+              <li>Water level reference: <code>head_lake = 0.0 m</code></li>
+              <li>Salinity: <code>salinity_lake = 1.0 kg/m³</code> (freshwater)</li>
+              <li>Temperature: 15.0 °C</li>
+            </ul>
+          </li>
+          <li><strong>Sea Side (Waddenzee)</strong>:
+            <ul>
+              <li>Water level: Dynamic tidal head difference <code>head_sea</code> per lockage</li>
+              <li>Salinity: <code>salinity_sea = 28.0 kg/m³</code> (saline marine)</li>
+              <li>Temperature: 15.0 °C</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Locking Cycle Phases -->
+  <section class="card">
+    <h2>4. Phase-wise Locking Cycle (D-SLF)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Phase / Routine</th>
+          <th>Physical Process</th>
+          <th>Governing Parameters</th>
+          <th>D-SLF API Call</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Routine 1</strong></td>
+          <td>Leveling lock chamber to lake level</td>
+          <td><code>t_level</code> (s), <code>head_sea</code> (m)</td>
+          <td><code>z.step_phase_1(t_level, **params)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Routine 2</strong></td>
+          <td>Doors open to Lake IJsselmeer; density exchange & ship egress/ingress</td>
+          <td><code>t_open_lake</code> (s), <code>ship_volume_lake_to_sea</code> (m³)</td>
+          <td><code>z.step_phase_2(t_open_lake, **params)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Routine 3</strong></td>
+          <td>Leveling lock chamber to sea level</td>
+          <td><code>t_level</code> (s), <code>head_sea</code> (m)</td>
+          <td><code>z.step_phase_3(t_level, **params)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Routine 4</strong></td>
+          <td>Doors open to Waddenzee; density exchange & ship egress/ingress</td>
+          <td><code>t_open_sea</code> (s), <code>ship_volume_sea_to_lake</code> (m³)</td>
+          <td><code>z.step_phase_4(t_open_sea, **params)</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Annual Simulation Results -->
+  <section class="card">
+    <h2>5. Annual Simulation Results</h2>
+    <p>Summary of full-year continuous simulations across all BIVAS traffic scenarios:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Simulated Steps</th>
+          <th>Duration (days)</th>
+          <th>Net Salt Load to Lake (tonnes)</th>
+          <th>Avg Salt Flux to Lake (kg/s)</th>
+          <th>Avg Inflow to Lake (m³/s)</th>
+          <th>Salinity to Lake (kg/m³)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>2023 Reference</strong></td>
+          <td>18,922</td>
+          <td>364.2</td>
+          <td><strong>−484,135</strong></td>
+          <td><strong>−15.38</strong></td>
+          <td>0.773</td>
+          <td>20.78</td>
+        </tr>
+        <tr>
+          <td><strong>2050 HSK</strong></td>
+          <td>18,942</td>
+          <td>363.8</td>
+          <td><strong>−480,834</strong></td>
+          <td><strong>−15.30</strong></td>
+          <td>0.763</td>
+          <td>20.93</td>
+        </tr>
+        <tr>
+          <td><strong>2050 LVK</strong></td>
+          <td>18,614</td>
+          <td>364.4</td>
+          <td><strong>−477,252</strong></td>
+          <td><strong>−15.16</strong></td>
+          <td>0.756</td>
+          <td>20.93</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CLI Execution -->
+  <section class="card">
+    <h2>6. How to Run</h2>
+    <pre><code># Execute with uv in the examples/stevinsluizen directory
+uv run python run_stevinsluizen.py --scenario all
+
+# Re-compile workflow diagram with D2
+d2 workflow.d2 workflow.svg</code></pre>
+  </section>
+
+</main>
+
+<footer>
+  <p>Deltares D-SLF (libzsf) &bull; Stevinsluizen Example</p>
+</footer>
+
+</body>
+</html>

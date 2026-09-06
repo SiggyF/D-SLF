@@ -1,8 +1,14 @@
 # Build and distributions
 build
 dist
+wrappers/git_describe.txt
 
 # Editors
 .idea
 .ipynb_checkpoints
 .vscode
+
+# Python & virtual environments
+.venv/
+__pycache__/
+*.py[cod]
